@@ -1,0 +1,245 @@
+---
+swagger: "2.0"
+info:
+  description: "Student Service API"
+  version: "1.0.0"
+  title: "Student"
+  termsOfService: ""
+  contact:
+    name: "someName"
+    url: "http://www.staffshift.com"
+    email: "info@staffshift.com"
+host: "localhost:3000"
+basePath: "/"
+tags:
+  - name: "Student"
+    description: "Student related service"
+schemes:
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+paths:
+  /student:
+    parameters:
+      - $ref: "#/parameters/x-request-jwt"
+    post:
+      tags:
+        - Student
+      summary: "created a new student"
+      x-swagger-router-controller: Student
+      operationId: createStudent
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: student
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/student_payload"
+      responses:
+        201:
+          description: "A single student will be returned"
+          schema:
+            $ref: "#/definitions/student"
+        400:
+          $ref: "#/responses/student_validation_error"
+        401:
+          $ref: "#/responses/unauthorize_error_model"
+        default:
+          $ref: "#/responses/default_server_error"
+    get:
+      tags:
+        - Student
+      summary: "Retrieves all student"
+      x-swagger-router-controller: Student
+      operationId: getStudents
+      responses:
+        200:
+          description: "All students will be returned"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/student_response"
+        204:
+          $ref: "#/responses/no_content"
+        400:
+          description: "Validation errors caused by missing or invalid header / path or payloads"
+          schema:
+            $ref: "#/definitions/get_delete_student_error"
+        401:
+          $ref: "#/responses/unauthorize_error_model"
+        default:
+          $ref: "#/responses/default_server_error"
+  /student/{student_id}:
+    parameters:
+      - $ref: "#/parameters/x-request-jwt"
+      - $ref: "#/parameters/student_id"
+    get:
+      tags:
+        - Student
+      summary: "Retrieves a single student"
+      x-swagger-router-controller: Student
+      operationId: getStudent
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: "A single student will be returned"
+          schema:
+            $ref: "#/definitions/student"
+        400:
+          $ref: "#/responses/pattern_validation_error"
+        404:
+          $ref: "#/responses/resource_not_found"
+        default:
+          $ref: "#/responses/default_server_error"
+parameters:
+  student_id:
+    name: student_id
+    required: true
+    in: path
+    type: string
+    pattern:  ^[0-9a-fA-F]{24}$
+  x-request-jwt:
+    name: x-request-jwt
+    in: header
+    description: "The jwt header"
+    type: string
+    required: true
+definitions:
+  student_response:
+    allOf:
+      - $ref: "#/definitions/student"
+  student:
+    type: object
+    required:
+      - _id
+      - __v
+      - created_at
+      - updated_at
+      - name
+      - age
+      - address
+    properties:
+      name:
+        type: string
+      age:
+        type: integer
+      address:
+        type: string
+      _id:
+        type: string
+        pattern: ^[0-9a-fA-F]{24}$
+      __v:
+        type: integer
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  student_payload:
+    type: object
+    required:
+      - name
+      - age
+      - address
+    properties:
+      name:
+        type: string
+      age:
+        type: integer
+      address:
+        type: string
+  get_delete_student_error:
+    type: object
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: string
+        enum:
+          - REQUIRED
+          - PATTERN
+      message:
+        type: string
+  unauthorize_error_model:
+    type: "object"
+    required:
+      - "code"
+      - "message"
+    properties:
+      code:
+        type: "string"
+        enum:
+          - UNAUTHORIZED
+      message:
+        type: "string"
+  client_error_model:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+  server_error_model:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+      exception:
+        $ref: "#/definitions/exception_model"
+  exception_model:
+    type: object
+  pattern_validation_error_model:
+    type: object
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+  student_validation_error:
+    type: object
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+responses:
+  no_content:
+    description: "No Content. There were no records to return based on your query."
+  default_server_error:
+    description: "unexpected error"
+    schema:
+      $ref: "#/definitions/server_error_model"
+  resource_not_found:
+    description: "No resource found for ID"
+    schema:
+      $ref: "#/definitions/client_error_model"
+  pattern_validation_error:
+    description: "A validation error occurred"
+    schema:
+      $ref: "#/definitions/pattern_validation_error_model"
+  unauthorize_error_model:
+    description: "Failed to authenticate the user making the request"
+    schema:
+      $ref: "#/definitions/unauthorize_error_model"
+  student_validation_error:
+    description: "validation error on create student"
+    schema:
+      $ref: "#/definitions/student_validation_error"
